@@ -12,7 +12,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image as RL
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 
-# Telegram Bot Token (Environment Variable orqali olinadi)
+# Telegram Bot Token (Environment Variable yoki standart qiymat)
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8895389668:AAHKkjNuIlpjylzQPVBQgCmqegHQCA2hbxU")
 
 bot = Bot(token=BOT_TOKEN)
@@ -141,7 +141,7 @@ async def process_city(message: Message, state: FSMContext):
     await state.update_data(city=message.text)
     await message.answer(
         "O'zingiz haqingizda qisqacha xulosa (Professional summary) yozing:\n"
-        "*(Maqsadingiz, kuchi tomonlaringiz va qaysi sohada mutaxassisligingiz haqida)*"
+        "*(Maqsadingiz, kuchli tomonlaringiz va qaysi sohada mutaxassisligingiz haqida)*"
     )
     await state.set_state(ResumeForm.summary)
 
@@ -187,7 +187,7 @@ async def process_skills(message: Message, state: FSMContext):
     await state.update_data(skills=message.text)
     await message.answer(
         "🌐 **Qaysi tillarni bilasiz?**\n"
-        "*(Masalan: O'zbek tili (Ona tili), Rus tili (A'lo), Ingliz tili (B2))* "
+        "*(Masalan: O'zbek tili (Ona tili), Rus tili (A'lo), Ingliz tili (B2))*"
     )
     await state.set_state(ResumeForm.languages)
 
@@ -276,18 +276,26 @@ def generate_pdf(data, filename):
     styles = getSampleStyleSheet()
 
     # Dizayn stillari
-    title_style = ParagraphStyle('TitleStyle', parent=styles['Heading1'], fontSize=18, textColor=colors.HexColor('#1a3a52'))
     heading_style = ParagraphStyle('HeadingStyle', parent=styles['Heading2'], fontSize=12, textColor=colors.HexColor('#1a3a52'), spaceBefore=10, spaceAfter=4)
     body_style = ParagraphStyle('BodyStyle', parent=styles['Normal'], fontSize=10, leading=14)
 
-    # Yuqori ma'lumotlar bloki (Rasm va Shaxsiy Ma'lumotlar)
+    # O'zgaruvchilarni xavfsiz shakllantirish (f-string ichida backslash bo'lmasligi uchun)
+    first_name = data.get('first_name', '')
+    last_name = data.get('last_name', '')
+    birth_val = data.get('birth_date', 'Ko`rsatilmagan')
+    city_val = data.get('city', '')
+    phone_val = data.get('phone', '')
+    email_val = data.get('email', '')
+    salary_val = data.get('expected_salary', 'Kelishiladi')
+
+    # Yuqori ma'lumotlar bloki
     header_data = []
-    text_info = f"<b><font size=15>{data.get('first_name', '')} {data.get('last_name', '')}</font></b><br/><br/>" \
-                f"<b>Tug'ilgan sana:</b> {data.get('birth_date', 'Ko\'rsatilmagan')}<br/>" \
-                f"<b>Manzil:</b> {data.get('city', '')}<br/>" \
-                f"<b>Tel:</b> {data.get('phone', '')}<br/>" \
-                f"<b>Email:</b> {data.get('email', '')}<br/>" \
-                f"<b>Kutilayotgan maosh:</b> {data.get('expected_salary', 'Kelishiladi')}"
+    text_info = f"<b><font size=15>{first_name} {last_name}</font></b><br/><br/>" \
+                f"<b>Tug'ilgan sana:</b> {birth_val}<br/>" \
+                f"<b>Manzil:</b> {city_val}<br/>" \
+                f"<b>Tel:</b> {phone_val}<br/>" \
+                f"<b>Email:</b> {email_val}<br/>" \
+                f"<b>Kutilayotgan maosh:</b> {salary_val}"
     
     p_info = Paragraph(text_info, body_style)
 
@@ -323,9 +331,12 @@ def generate_pdf(data, filename):
     add_section("Chet tillari", data.get("languages"))
     add_section("Sertifikatlar va Kurslar", data.get("certificates"))
 
-    # Qo'shimcha ma'lumotlar jadvali
-    extra_info = f"<b>Zararli odatlar:</b> {data.get('bad_habits', 'Yo\'q')}<br/>" \
-                 f"<b>Haydovchilik guvohnomasi:</b> {data.get('driving_license', 'Yo\'q')}"
+    # Qo'shimcha ma'lumotlar
+    bad_habits_val = data.get('bad_habits', 'Yo`q')
+    license_val = data.get('driving_license', 'Yo`q')
+    
+    extra_info = f"<b>Zararli odatlar:</b> {bad_habits_val}<br/>" \
+                 f"<b>Haydovchilik guvohnomasi:</b> {license_val}"
     add_section("Qo'shimcha Ma'lumotlar", extra_info)
 
     doc.build(story)
