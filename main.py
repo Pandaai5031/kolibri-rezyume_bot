@@ -32,7 +32,6 @@ def keep_alive():
     t.start()
 
 # --- 2. TELEGRAM BOT BOT_TOKEN SOZLAMASI ---
-# Token Render Environment Variables bo'limidan olinadi yoki zaxira token ishlatiladi
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "8895389668:AAHKkjNuIlpjylzQPVBQgCmqegHQCA2hbxU")
 
 bot = Bot(token=BOT_TOKEN)
@@ -299,13 +298,16 @@ def generate_pdf(data, filename):
     heading_style = ParagraphStyle('HeadingStyle', parent=styles['Heading2'], fontSize=12, textColor=colors.HexColor('#1a3a52'), spaceBefore=10, spaceAfter=4)
     body_style = ParagraphStyle('BodyStyle', parent=styles['Normal'], fontSize=10, leading=14)
 
+    birth_date_text = data.get('birth_date', 'Ko\'rsatilmagan')
+    expected_salary_text = data.get('expected_salary', 'Kelishiladi')
+
     header_data = []
     text_info = f"<b><font size=15>{data.get('first_name', '')} {data.get('last_name', '')}</font></b><br/><br/>" \
-                f"<b>Tug'ilgan sana:</b> {data.get('birth_date', 'Ko\'rsatilmagan')}<br/>" \
+                f"<b>Tug'ilgan sana:</b> {birth_date_text}<br/>" \
                 f"<b>Manzil:</b> {data.get('city', '')}<br/>" \
                 f"<b>Tel:</b> {data.get('phone', '')}<br/>" \
                 f"<b>Email:</b> {data.get('email', '')}<br/>" \
-                f"<b>Kutilayotgan maosh:</b> {data.get('expected_salary', 'Kelishiladi')}"
+                f"<b>Kutilayotgan maosh:</b> {expected_salary_text}"
     
     p_info = Paragraph(text_info, body_style)
 
@@ -339,8 +341,11 @@ def generate_pdf(data, filename):
     add_section("Chet tillari", data.get("languages"))
     add_section("Sertifikatlar va Kurslar", data.get("certificates"))
 
-    extra_info = f"<b>Zararli odatlar:</b> {data.get('bad_habits', 'Yo\'q')}<br/>" \
-                 f"<b>Haydovchilik guvohnomasi:</b> {data.get('driving_license', 'Yo\'q')}"
+    bad_habits_text = data.get('bad_habits', 'Yo\'q')
+    driving_license_text = data.get('driving_license', 'Yo\'q')
+    
+    extra_info = f"<b>Zararli odatlar:</b> {bad_habits_text}<br/>" \
+                 f"<b>Haydovchilik guvohnomasi:</b> {driving_license_text}"
     add_section("Qo'shimcha Ma'lumotlar", extra_info)
 
     doc.build(story)
@@ -348,7 +353,7 @@ def generate_pdf(data, filename):
 # --- 4. ISHGA TUSHIRISH ---
 async def main():
     print("Bot muvaffaqiyatli ishga tushdi...")
-    keep_alive()  # Render port binding serverini ishga tushiradi
+    keep_alive()
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
